@@ -1,73 +1,58 @@
-# React + TypeScript + Vite
+# Dev Tools
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Lightweight Solana developer toolbox built with React, TypeScript, Vite, and Tailwind CSS. The app focuses on simple, fast, and safe local conversions commonly needed during Solana development.
 
-Currently, two official plugins are available:
+## Features
+- Array Private Key → Base58 & Address
+  - Input a Solana secret key as an array of bytes (32 or 64).
+  - Outputs the base58-encoded secret key and the public address.
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Base58 → Array Private Key & Address
+  - Input a base58-encoded secret key (32 or 64 bytes).
+  - Outputs the array form of the secret key and the derived public address.
 
-## React Compiler
+- PDA Derivation
+  - Input a `programId` and up to four seed strings.
+  - Seeds are combined with `Buffer.from(...)` and passed to `PublicKey.findProgramAddressSync`.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+Example:
 
-## Expanding the ESLint configuration
+```ts
+import { PublicKey } from '@solana/web3.js'
 
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+export function pdaMint(programId: PublicKey, name: string, symbol: string) {
+  const seed = Buffer.from('fair_mint')
+  return PublicKey.findProgramAddressSync(
+    [seed, Buffer.from(name), Buffer.from(symbol.toLowerCase())],
+    programId,
+  )
+}
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+## Quick Start
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
-
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+npm install
+npm run dev
 ```
+
+## Build & Preview
+
+```bash
+npm run build
+npm run preview
+```
+
+## Files of Interest
+- `src/components/SecretKeyTool.tsx` — Array → Base58 & Address
+- `src/components/Base58SecretTool.tsx` — Base58 → Array & Address
+- `src/components/PDATool.tsx` — PDA derivation (up to 4 seeds)
+- `src/App.tsx` — Page layout and sections
+
+## Tech Stack
+- React, TypeScript, Vite
+- Tailwind CSS v4 via `@tailwindcss/postcss`
+- `@solana/web3.js`, `bs58`, `buffer`
+
+## Security Note
+All conversions run locally in the browser; no backend calls are made. Treat private keys carefully and avoid using production secrets on untrusted machines.
