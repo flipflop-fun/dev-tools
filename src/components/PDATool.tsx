@@ -1,6 +1,26 @@
 import { useState } from "react";
 import { PublicKey } from "@solana/web3.js";
-import { Buffer } from "buffer";
+import bs58 from "bs58";
+
+function parseSeedInput(s: string): Uint8Array {
+  const t = s.trim();
+  if (!t) return new Uint8Array();
+  if (/^0x[0-9a-fA-F]+$/.test(t)) {
+    const hex = t.slice(2);
+    if (hex.length % 2 !== 0) throw new Error("Invalid hex seed: odd length");
+    const out = new Uint8Array(hex.length / 2);
+    for (let i = 0; i < hex.length; i += 2) {
+      out[i / 2] = parseInt(hex.slice(i, i + 2), 16);
+    }
+    return out;
+  }
+  try {
+    const bytes = bs58.decode(t);
+    if (bytes.length <= 32) return bytes;
+  } catch { void 0; }
+  const b = new TextEncoder().encode(t);
+  return b;
+}
 
 export default function PDATool() {
   const [programId, setProgramId] = useState("");
@@ -18,9 +38,17 @@ export default function PDATool() {
     setBump(null);
     try {
       const pid = new PublicKey(programId.trim());
-      const seeds = [seed1, seed2, seed3, seed4]
-        .map((s) => Buffer.from(s))
-        .filter((b) => b.length > 0);
+      const inputs = [seed1, seed2, seed3, seed4];
+      const seeds: Uint8Array[] = [];
+      for (let i = 0; i < inputs.length; i++) {
+        const raw = inputs[i];
+        if (!raw.trim()) continue;
+        const bytes = parseSeedInput(raw);
+        if (bytes.length > 32) {
+          throw new Error(`Seed ${i + 1} exceeds 32 bytes`);
+        }
+        seeds.push(bytes);
+      }
       const [addr, bumpVal] = PublicKey.findProgramAddressSync(seeds, pid);
       setPda(addr.toBase58());
       setBump(bumpVal);
@@ -41,25 +69,25 @@ export default function PDATool() {
         />
         <input
           className="w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm outline-none focus:border-neutral-500"
-          placeholder="Seed 1 (text)"
+          placeholder="Seed 1 (text/base58/0xhex)"
           value={seed1}
           onChange={(e) => setSeed1(e.target.value)}
         />
         <input
           className="w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm outline-none focus:border-neutral-500"
-          placeholder="Seed 2"
+          placeholder="Seed 2 (text/base58/0xhex)"
           value={seed2}
           onChange={(e) => setSeed2(e.target.value)}
         />
         <input
           className="w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm outline-none focus:border-neutral-500"
-          placeholder="Seed 3"
+          placeholder="Seed 3 (text/base58/0xhex)"
           value={seed3}
           onChange={(e) => setSeed3(e.target.value)}
         />
         <input
           className="w-full rounded-md border border-neutral-700 bg-neutral-900 px-3 py-2 text-sm outline-none focus:border-neutral-500"
-          placeholder="Seed 4"
+          placeholder="Seed 4 (text/base58/0xhex)"
           value={seed4}
           onChange={(e) => setSeed4(e.target.value)}
         />

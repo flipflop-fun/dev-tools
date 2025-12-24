@@ -1,6 +1,7 @@
 import SecretKeyTool from "./components/SecretKeyTool";
 import Base58SecretTool from "./components/Base58SecretTool";
 import PDATool from "./components/PDATool";
+import AccountDataTool from "./components/AccountDataTool";
 
 function App() {
   return (
@@ -18,6 +19,9 @@ function App() {
           </section>
           <section className="rounded-lg border border-neutral-800 p-5">
             <PDATool />
+          </section>
+          <section className="rounded-lg border border-neutral-800 p-5">
+            <AccountDataTool />
           </section>
         </main>
       </div>
